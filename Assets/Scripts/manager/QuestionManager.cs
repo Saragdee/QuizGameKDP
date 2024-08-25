@@ -1,5 +1,8 @@
 ﻿using System.Collections.Generic;
+using System.IO;
+using entity;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace manager
@@ -9,19 +12,26 @@ namespace manager
         public static QuestionManager Instance;
 
         public GameObject questionCardPrefab;
-        public Transform questionListTransform; // This should be the Content object in ScrollView
+        public Transform questionListTransform;
         public Button addQuestionButton;
         public int maxQuestions = 15;
 
-        private readonly List<QuestionEntity> questions = new();
+        private List<QuestionEntity> questions = new List<QuestionEntity>();
         private int selectedQuestionIndex = -1;
+        public Button saveQuizButton;
+
+        public QuestionEditor questionEditor; // Reference to the QuestionEditor
 
         private void Awake()
         {
             if (Instance == null)
+            {
                 Instance = this;
+            }
             else
+            {
                 Destroy(gameObject);
+            }
         }
 
         private void Start()
@@ -29,6 +39,7 @@ namespace manager
             addQuestionButton.onClick.RemoveAllListeners();
             addQuestionButton.onClick.AddListener(AddQuestion);
             UpdateAddButtonState();
+            saveQuizButton.onClick.AddListener(SaveQuiz);
         }
 
         public void AddQuestion()
@@ -39,7 +50,7 @@ namespace manager
                 return;
             }
 
-            var newQuestion = new QuestionEntity(questionCardPrefab, questionListTransform, questions.Count);
+            QuestionEntity newQuestion = new QuestionEntity(questionCardPrefab, questionListTransform, questions.Count);
             questions.Add(newQuestion);
             Debug.Log("Adding question. Total questions: " + questions.Count);
 
@@ -57,7 +68,10 @@ namespace manager
                 questions.RemoveAt(index);
 
                 // Update the indices of the remaining questions
-                for (var i = index; i < questions.Count; i++) questions[i].UpdateIndex(i);
+                for (int i = index; i < questions.Count; i++)
+                {
+                    questions[i].UpdateIndex(i);
+                }
 
                 // Handle the selected question logic
                 if (selectedQuestionIndex == index)
@@ -76,6 +90,77 @@ namespace manager
             }
         }
 
+        public void SaveQuiz()
+        {
+            QuizData quizData = new QuizData();
+            quizData.title = "My Quiz"; // Optionally, you can add a field for the title in your UI
+
+            // Gather all questions
+            foreach (var question in questions)
+            {
+                quizData.questions.Add(question);
+            }
+
+            // Serialize to JSON
+            string json = JsonUtility.ToJson(quizData, true);
+
+            // Open file explorer and save the JSON file
+            string path = Application.dataPath + "/SavedQuizzes";
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+            }
+
+            string filePath = path + "/quiz.json"; // You can modify this to let the user choose the filename
+            File.WriteAllText(filePath, json);
+
+            Debug.Log("Quiz saved to " + filePath);
+
+            // Optionally, open the file explorer at the save location
+            Application.OpenURL("file://" + path);
+        }
+
+        public void LoadQuiz()
+        {
+            // Define the path where the quiz file is saved
+            string filePath = Path.Combine(Application.persistentDataPath, "quiz.json");
+
+            if (File.Exists(filePath))
+            {
+                string json = File.ReadAllText(filePath);
+                QuizData loadedQuiz = JsonUtility.FromJson<QuizData>(json);
+
+                // Clear current questions
+                foreach (var question in questions)
+                {
+                    question.DestroyCard(); // Assuming you have this method to clean up UI
+                }
+
+                questions.Clear();
+
+                // Load the quiz data
+                foreach (var question in loadedQuiz.questions)
+                {
+                    QuestionEntity newQuestion =
+                        new QuestionEntity(questionCardPrefab, questionListTransform, questions.Count);
+                    newQuestion.questionText = question.questionText;
+                    newQuestion.type = question.type;
+                    newQuestion.answers = question.answers;
+                    newQuestion.correctAnswerIndex = question.correctAnswerIndex;
+                    newQuestion.timeLimit = question.timeLimit;
+
+                    questions.Add(newQuestion);
+                    newQuestion.UpdateCardText(); // Assuming this updates the UI with the question data
+                }
+
+                Debug.Log("Quiz loaded from " + filePath);
+            }
+            else
+            {
+                Debug.LogError("Quiz file not found at " + filePath);
+            }
+        }
+
         private void UpdateAddButtonState()
         {
             addQuestionButton.interactable = questions.Count < maxQuestions;
@@ -84,18 +169,56 @@ namespace manager
         private void ClearQuestionEditor()
         {
             Debug.Log("Clearing question editor UI.");
-            // Implement this method to clear the question editor UI
+            questionEditor.questionTitleField.text = "";
+            questionEditor.questionTypeDropdown.value = 0;
+            foreach (var field in questionEditor.multipleChoiceAnswerFields)
+            {
+                field.text = "";
+            }
+
+            foreach (var toggle in questionEditor.correctAnswerToggles)
+            {
+                toggle.isOn = false;
+            }
+
+            questionEditor.trueToggle.isOn = false;
+            questionEditor.falseToggle.isOn = false;
+            questionEditor.timeLimitField.text = "";
         }
 
         public void SelectQuestion(int index)
         {
             if (selectedQuestionIndex >= 0 && selectedQuestionIndex < questions.Count)
+            {
                 questions[selectedQuestionIndex].SetSelected(false);
+            }
 
             selectedQuestionIndex = index;
             questions[selectedQuestionIndex].SetSelected(true);
 
-            // Implement logic to display the selected question in the right-side editor
+            if (questionEditor != null)
+            {
+                questionEditor.LoadQuestion(questions[selectedQuestionIndex]);
+            }
+            else
+            {
+                Debug.LogError("QuestionEditor is not assigned in QuestionManager.");
+            }
+        }
+
+        public QuestionEntity GetQuestion(int index)
+        {
+            return questions[index];
+        }
+
+        public void UpdateQuestion(QuestionEntity updatedQuestion)
+        {
+            questions[updatedQuestion.index] = updatedQuestion;
+        }
+        
+        public void GoToMainMenu()
+        {
+            SceneManager.LoadScene("MainMenuScene");
         }
     }
 }
