@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 4282710bddb84c338fea7f236d037274
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - questionCardPrefab: {fileID: 5302723739925196186, guid: 5da1a44451b1f45448c21aca0e2e1dd5, type: 3}
+  - questionListTransform: {instanceID: 0}
+  - addQuestionButton: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
