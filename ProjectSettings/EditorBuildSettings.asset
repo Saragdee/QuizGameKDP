@@ -8,4 +8,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/MainMenuScene.unity
     guid: 2cda990e2423bbf4892e6590ba056729
+  - enabled: 1
+    path: Assets/Scenes/StudentMode.unity
+    guid: 923db7d07e2b2204998a23fddb8a84a0
   m_configObjects: {}

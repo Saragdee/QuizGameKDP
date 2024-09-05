@@ -23,18 +23,15 @@ public class QuestionEditor : MonoBehaviour
     {
         saveButton.onClick.AddListener(SaveQuestion);
         questionTypeDropdown.onValueChanged.AddListener(OnQuestionTypeChanged);
-
-        // Set default value for time limit
+        
         timeLimitField.text = DefaultTimeLimit.ToString();
         timeLimitField.onEndEdit.AddListener(ValidateTimeLimit);
-
-        // Initially hide all editor elements until a question is selected
+        
         ClearEditor();
     }
 
     private void ValidateTimeLimit(string input)
     {
-        // Check if the input is empty or non-numeric
         if (string.IsNullOrEmpty(input) || !int.TryParse(input, out _))
             timeLimitField.text = DefaultTimeLimit.ToString();
     }
@@ -80,8 +77,7 @@ public class QuestionEditor : MonoBehaviour
         var question = QuestionManager.Instance.GetQuestion(currentQuestionIndex);
         question.questionText = questionTitleField.text;
         question.type = questionTypeDropdown.value == 0 ? "Multiple Choice" : "True/False";
-
-        // Ensure time limit is valid before saving
+        
         ValidateTimeLimit(timeLimitField.text);
         question.timeLimit = int.Parse(timeLimitField.text);
 

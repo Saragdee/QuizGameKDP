@@ -20,7 +20,7 @@ namespace manager
         private int selectedQuestionIndex = -1;
         public Button saveQuizButton;
 
-        public QuestionEditor questionEditor; // Reference to the QuestionEditor
+        public QuestionEditor questionEditor;
 
         private void Awake()
         {
@@ -46,14 +46,12 @@ namespace manager
         {
             if (questions.Count >= maxQuestions)
             {
-                Debug.Log("Maximum number of questions reached.");
                 return;
             }
 
             QuestionEntity newQuestion = new QuestionEntity(questionCardPrefab, questionListTransform, questions.Count);
             questions.Add(newQuestion);
-            Debug.Log("Adding question. Total questions: " + questions.Count);
-
+            
             UpdateAddButtonState();
         }
 
@@ -105,7 +103,7 @@ namespace manager
             string json = JsonUtility.ToJson(quizData, true);
 
             // Open file explorer and save the JSON file
-            string path = Application.dataPath + "/SavedQuizzes";
+            string path = Application.persistentDataPath + "/SavedQuizzes";
             if (!Directory.Exists(path))
             {
                 Directory.CreateDirectory(path);
@@ -123,7 +121,7 @@ namespace manager
         public void LoadQuiz()
         {
             // Define the path where the quiz file is saved
-            string filePath = Path.Combine(Application.persistentDataPath, "quiz.json");
+            string filePath = Application.persistentDataPath + "/SavedQuizzes/quiz.json";
 
             if (File.Exists(filePath))
             {

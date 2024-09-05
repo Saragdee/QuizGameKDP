@@ -8,14 +8,6 @@
             "correctAnswerIndex": 0,
             "timeLimit": 0,
             "index": 0
-        },
-        {
-            "questionText": "",
-            "type": "",
-            "answers": [],
-            "correctAnswerIndex": 0,
-            "timeLimit": 0,
-            "index": 1
         }
     ]
 }
